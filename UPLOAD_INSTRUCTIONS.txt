@@ -1,0 +1,11 @@
+QR Code 功能更新檔
+
+請在 GitHub Repository 覆蓋以下檔案：
+- index.html
+- css/style.css
+- js/game.js
+- README.md（可選）
+
+不要覆蓋你已設定 Supabase URL / Publishable Key 的 js/config.js。
+
+更新完成後 GitHub Pages 會自動重新部署。

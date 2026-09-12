@@ -334,3 +334,22 @@ const MAX_HP = 7;
 - PWA 安裝到 iPad 主畫面
 - Supabase match history
 - 自訂題庫
+
+## QR Code 加入房間（V2）
+
+連線對戰的房主建立房間後，等待畫面會自動顯示 QR Code。QR Code 內容是目前網站網址加上 `?room=XXXXXX`，例如：
+
+```text
+https://yourname.github.io/element-battle/?room=ABC234
+```
+
+另一位玩家使用手機或平板相機掃描後：
+
+1. 開啟 GitHub Pages 遊戲網址。
+2. 網頁自動切換至「連線對戰」。
+3. 自動帶入 6 碼房號。
+4. 自動連線並加入該房間，不必再手動輸入房號。
+
+房主仍可使用「複製房號」、「複製連結」或支援 Web Share API 的「分享房間」。
+
+QR Code 由前端 `qrcodejs` 產生，不會把 Supabase secret key 放進 QR Code。QR Code 只包含公開的遊戲網址與房號。
