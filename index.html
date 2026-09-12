@@ -17,6 +17,7 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script defer src="./js/config.js"></script>
   <script defer src="./js/data.js"></script>
   <script defer src="./js/questions.js"></script>
@@ -116,7 +117,26 @@
           <h1 id="lobbyTitle">等待對手加入</h1>
           <p id="lobbyText">把下面的房間代碼分享給另一位玩家。</p>
           <div class="room-code" id="roomCodeDisplay">------</div>
-          <button class="secondary-button" id="copyCodeBtn" type="button">複製房號</button>
+
+          <div class="room-share-panel" id="roomSharePanel" hidden>
+            <div class="qr-frame" aria-label="掃描 QR Code 加入此房間">
+              <div id="roomQrCode" class="room-qr-code"></div>
+            </div>
+            <div class="qr-copy">
+              <strong>掃描 QR Code 直接加入</strong>
+              <span>用另一台手機或平板的相機掃描，開啟網頁後會自動加入這個房間。</span>
+            </div>
+            <label class="join-link-label" for="joinLinkInput">加入連結</label>
+            <div class="join-link-row">
+              <input id="joinLinkInput" type="text" readonly aria-label="房間加入連結" />
+              <button class="secondary-button" id="copyLinkBtn" type="button">複製連結</button>
+            </div>
+            <button class="secondary-button share-room-button" id="shareRoomBtn" type="button" hidden>分享房間</button>
+          </div>
+
+          <div class="lobby-actions">
+            <button class="secondary-button" id="copyCodeBtn" type="button">複製房號</button>
+          </div>
           <div class="lobby-progress"><span></span><span></span><span></span></div>
           <button class="text-button" id="cancelLobbyBtn" type="button">取消並返回</button>
         </div>
