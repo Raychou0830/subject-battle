@@ -4,6 +4,6 @@
  * 2026 年新版專案請優先使用 sb_publishable_... 金鑰。
  */
 window.APP_CONFIG = {
-  SUPABASE_URL: '',
-  SUPABASE_PUBLISHABLE_KEY: ''
+  SUPABASE_URL: 'https://eqmoivuhmzmiqwkdgtlm.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_Of4S6AYNQnWBZb97zmua5Q_hEsHyI-T'
 };
