@@ -306,6 +306,81 @@
     return code;
   }
 
+  function buildJoinUrl(roomCode) {
+    const url = new URL(window.location.href);
+    url.hash = '';
+    url.search = '';
+    url.searchParams.set('room', roomCode);
+    return url.toString();
+  }
+
+  function clearRoomParam() {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('room')) return;
+    url.searchParams.delete('room');
+    history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  function renderRoomShare(roomCode) {
+    const panel = $('roomSharePanel');
+    const qr = $('roomQrCode');
+    const linkInput = $('joinLinkInput');
+    const shareBtn = $('shareRoomBtn');
+    if (!panel || !qr || !linkInput) return;
+
+    const isHost = state.mode === 'online' && state.role === 'host';
+    panel.hidden = !isHost;
+    if (!isHost) return;
+
+    const joinUrl = buildJoinUrl(roomCode);
+    linkInput.value = joinUrl;
+    qr.innerHTML = '';
+
+    try {
+      if (!window.QRCode) throw new Error('QRCode library unavailable');
+      new window.QRCode(qr, {
+        text: joinUrl,
+        width: 220,
+        height: 220,
+        colorDark: '#07152f',
+        colorLight: '#ffffff',
+        correctLevel: window.QRCode.CorrectLevel.M
+      });
+    } catch (err) {
+      console.error('QR Code generation failed', err);
+      qr.textContent = 'QR Code 載入失敗，仍可複製下方加入連結。';
+    }
+
+    if (shareBtn) shareBtn.hidden = !navigator.share;
+  }
+
+  function selectOnlineMode() {
+    state.playMode = 'online';
+    const container = $('playModeSelector');
+    for (const item of container.querySelectorAll('[data-value]')) {
+      const on = item.dataset.value === 'online';
+      item.classList.toggle('is-selected', on);
+      item.setAttribute('aria-checked', String(on));
+    }
+    updateSetupVisibility();
+  }
+
+  async function handleRoomJoinLink() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = (params.get('room') || '').toUpperCase().replace(/[^A-Z2-9]/g, '').slice(0, 6);
+    if (!raw) return;
+
+    selectOnlineMode();
+    $('roomCodeInput').value = raw;
+    if (raw.length !== 6) {
+      setSupabaseStatus('QR Code／加入連結中的房號格式不完整。', true);
+      return;
+    }
+
+    setSupabaseStatus(`已讀取房間 ${raw}，正在自動加入…`, false);
+    await joinRoom({auto:true});
+  }
+
   async function startLocal() {
     await Audio.unlock();
     state.mode='local'; state.role='local'; state.localPlayer=null; state.roomCode=null;
@@ -326,8 +401,9 @@
     resetPlayers(animals);
     $('roomCodeDisplay').textContent = roomCode;
     $('lobbyTitle').textContent = '等待對手加入';
-    $('lobbyText').textContent = '把這個 6 碼房號分享給另一位玩家。';
+    $('lobbyText').textContent = '請對手掃描 QR Code，或分享 6 碼房號。';
     setScreen('lobbyScreen');
+    renderRoomShare(roomCode);
     try {
       await Net.hostRoom(roomCode, pendingHostMeta);
       updateConnectionPill(true, roomCode);
@@ -338,8 +414,9 @@
     }
   }
 
-  async function joinRoom() {
-    await Audio.unlock();
+  async function joinRoom(options = {}) {
+    const autoJoin = options?.auto === true;
+    if (!autoJoin) await Audio.unlock();
     if (!Net.isConfigured()) {
       setSupabaseStatus('尚未設定 Supabase。請先修改 js/config.js。', true);
       return;
@@ -352,8 +429,9 @@
     }
     state.mode='online'; state.role='guest'; state.localPlayer=2; state.roomCode=code;
     $('roomCodeDisplay').textContent = code;
-    $('lobbyTitle').textContent = '正在尋找房主';
-    $('lobbyText').textContent = '已連上 Realtime，正在確認房間是否存在…';
+    $('roomSharePanel').hidden = true;
+    $('lobbyTitle').textContent = autoJoin ? 'QR Code 已讀取' : '正在尋找房主';
+    $('lobbyText').textContent = '正在連上 Realtime，確認房間是否存在…';
     setScreen('lobbyScreen');
     try {
       await Net.joinRoom(code);
@@ -451,6 +529,7 @@
     state.running=false; state.over=false;
     if (state.mode === 'online') await Net.disconnect();
     updateConnectionPill(false);
+    clearRoomParam();
     setScreen('setupScreen');
   }
 
@@ -557,12 +636,37 @@
 
     $('startLocalBtn').addEventListener('click',startLocal);
     $('createRoomBtn').addEventListener('click',createRoom);
-    $('joinRoomBtn').addEventListener('click',joinRoom);
+    $('joinRoomBtn').addEventListener('click',()=>joinRoom());
     $('roomCodeInput').addEventListener('keydown',e=>{ if(e.key==='Enter') joinRoom(); });
     $('roomCodeInput').addEventListener('input',e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,'').slice(0,6); });
     $('copyCodeBtn').addEventListener('click',async()=>{
       try { await navigator.clipboard.writeText(state.roomCode || $('roomCodeDisplay').textContent); $('copyCodeBtn').textContent='已複製！'; setTimeout(()=>$('copyCodeBtn').textContent='複製房號',1200); }
       catch { $('copyCodeBtn').textContent='請手動複製'; }
+    });
+    $('copyLinkBtn').addEventListener('click',async()=>{
+      const link = $('joinLinkInput').value;
+      if (!link) return;
+      try {
+        await navigator.clipboard.writeText(link);
+        $('copyLinkBtn').textContent='已複製！';
+        setTimeout(()=>$('copyLinkBtn').textContent='複製連結',1200);
+      } catch {
+        $('joinLinkInput').select();
+        $('copyLinkBtn').textContent='請手動複製';
+      }
+    });
+    $('shareRoomBtn').addEventListener('click',async()=>{
+      const link = $('joinLinkInput').value;
+      if (!link || !navigator.share) return;
+      try {
+        await navigator.share({
+          title:'元素大亂鬥｜加入房間',
+          text:`加入我的元素大亂鬥房間：${state.roomCode}`,
+          url:link
+        });
+      } catch (err) {
+        if (err?.name !== 'AbortError') console.warn('Share failed', err);
+      }
     });
     $('cancelLobbyBtn').addEventListener('click',backToSetup);
     $('quitGameBtn').addEventListener('click',backToSetup);
@@ -586,4 +690,9 @@
 
   initializeNetworkHandlers();
   initializeUI();
+  handleRoomJoinLink().catch(err => {
+    console.error('Auto join failed', err);
+    setSupabaseStatus(`自動加入失敗：${err.message}`, true);
+    setScreen('setupScreen');
+  });
 })();
