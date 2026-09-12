@@ -156,6 +156,28 @@ main { width:100%; }
   font-size:clamp(30px, 8vw, 52px); letter-spacing:.16em; font-weight:900; color:var(--yellow);
   background:#041023; border:1px solid rgba(255,215,95,.28); box-shadow:inset 0 0 25px rgba(255,215,95,.05);
 }
+
+.room-share-panel {
+  margin:18px auto 4px; padding:18px; border-radius:22px;
+  background:rgba(255,255,255,.045); border:1px solid var(--line);
+}
+.qr-frame {
+  width:min(232px, 80vw); aspect-ratio:1; margin:0 auto; padding:16px; border-radius:22px;
+  display:grid; place-items:center; background:#fff; box-shadow:0 14px 36px rgba(0,0,0,.24);
+}
+.room-qr-code { width:100%; height:100%; display:grid; place-items:center; color:#07152f; font-size:13px; line-height:1.5; }
+.room-qr-code img, .room-qr-code canvas { display:block; width:100%!important; height:100%!important; }
+.qr-copy { margin:14px auto 16px; display:grid; gap:5px; }
+.qr-copy strong { color:var(--text); font-size:16px; }
+.qr-copy span { color:var(--muted); font-size:12px; line-height:1.55; }
+.join-link-label { display:block; margin:0 0 7px; color:var(--muted); font-size:11px; font-weight:800; text-align:left; }
+.join-link-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; }
+.join-link-row input {
+  width:100%; min-width:0; min-height:46px; padding:0 12px; border-radius:12px; border:1px solid var(--line);
+  background:rgba(4,16,35,.78); color:var(--text); font-size:12px;
+}
+.share-room-button { width:100%; margin-top:9px; }
+.lobby-actions { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
 .lobby-progress { display:flex; justify-content:center; gap:8px; margin:24px 0; }
 .lobby-progress span { width:10px; height:10px; border-radius:50%; background:var(--cyan); animation:bounce 1s infinite ease-in-out; }
 .lobby-progress span:nth-child(2){ animation-delay:.15s; }.lobby-progress span:nth-child(3){ animation-delay:.3s; }
@@ -316,6 +338,8 @@ main { width:100%; }
   .connection-pill { display:none!important; }
   .setup-screen { padding-inline:12px; }
   .segmented, .device-grid { grid-template-columns:1fr; }
+  .join-link-row { grid-template-columns:1fr; }
+  .join-link-row .secondary-button { width:100%; }
   .choice, .difficulty, .device-choice { min-height:94px; }
   .game-screen { padding-inline:6px; }
   .player-panel { border-radius:22px; min-height:610px; }
